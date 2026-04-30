@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 데이터센터 공급망 선행지표 대시보드</title>
+<style>
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f4ee;
+  --bg-tertiary: #faf9f5;
+  --text-primary: #1a1a1a;
+  --text-secondary: #5f5e5a;
+  --text-tertiary: #888780;
+  --border-tertiary: rgba(0, 0, 0, 0.12);
+  --border-secondary: rgba(0, 0, 0, 0.25);
+  --accent-info: #185fa5;
+  --accent-info-bg: #E6F1FB;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2c2c2a;
+    --bg-tertiary: #222220;
+    --text-primary: #f5f4ee;
+    --text-secondary: #b4b2a9;
+    --text-tertiary: #888780;
+    --border-tertiary: rgba(255, 255, 255, 0.15);
+    --border-secondary: rgba(255, 255, 255, 0.3);
+    --accent-info: #85B7EB;
+    --accent-info-bg: #042C53;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0 0 24px;
+}
+
+.alert-card {
+  background: #FCEBEB;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  border-left: 3px solid #E24B4A;
+}
+.alert-card .alert-label {
+  font-size: 12px;
+  color: #791F1F;
+  margin: 0 0 4px;
+}
+.alert-card .alert-value {
+  color: #501313;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 500;
+  margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .alert-card { background: #501313; }
+  .alert-card .alert-label { color: #F09595; }
+  .alert-card .alert-value { color: #F7C1C1; }
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+@media (max-width: 600px) {
+  .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.metric-card {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.metric-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0 0 4px;
+}
+.metric-value {
+  font-size: 22px;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.2;
+}
+.metric-sub {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin: 4px 0 0;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 0.5px solid var(--border-tertiary);
+  background: var(--bg-primary);
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.chip:hover { border-color: var(--border-secondary); }
+.chip.active {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border-color: var(--text-primary);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  background: var(--bg-primary);
+  border: 0.5px solid var(--border-tertiary);
+  border-radius: 12px;
+}
+
+.signal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 800px;
+}
+.signal-table th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 12px 14px;
+  border-bottom: 0.5px solid var(--border-tertiary);
+  background: var(--bg-secondary);
+}
+.signal-table td {
+  padding: 12px 14px;
+  border-bottom: 0.5px solid var(--border-tertiary);
+  vertical-align: top;
+}
+.signal-table tr:last-child td { border-bottom: none; }
+
+.signal-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.signal-detail {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.lt-pill {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.lt-short { background: #FCEBEB; color: #791F1F; }
+.lt-mid { background: #FAEEDA; color: #633806; }
+.lt-long { background: #E1F5EE; color: #085041; }
+
+@media (prefers-color-scheme: dark) {
+  .lt-short { background: #501313; color: #F7C1C1; }
+  .lt-mid { background: #412402; color: #FAC775; }
+  .lt-long { background: #04342C; color: #9FE1CB; }
+}
+
+.layer-tag {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.bottleneck-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.b-high { background: #E24B4A; }
+.b-mid { background: #EF9F27; }
+.b-low { background: #888780; }
+.b-watch { background: var(--bg-primary); border: 1px solid #888780; }
+
+.search-link {
+  font-size: 11px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 0.5px solid var(--border-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
+  font-family: inherit;
+}
+.search-link:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.legend {
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin: 16px 0 0;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.no-results {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+.row-watch { background: var(--bg-secondary); }
+.row-watch .signal-name {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+.row-priority { background: #FCEBEB; }
+.row-priority .signal-name { color: #501313; }
+
+@media (prefers-color-scheme: dark) {
+  .row-priority { background: #501313; }
+  .row-priority .signal-name { color: #F7C1C1; }
+}
+
+.footer {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 0.5px solid var(--border-tertiary);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>AI 데이터센터 공급망 선행지표 대시보드</h1>
+<p class="subtitle">시황 신호를 레이어별 수요와 lead time에 매핑 · 마지막 업데이트: 2026-05-01</p>
+
+<div class="alert-card">
+<p class="alert-label">현재 신규 경고</p>
+<p class="alert-value">서버 DRAM이 HBM 수준으로 tight — DDR5 RDIMM contract price 월간 +6~9%, 서버 OEM 할당 시작</p>
+</div>
+
+<div class="summary-grid">
+<div class="metric-card">
+<p class="metric-label">활성 신호</p>
+<p class="metric-value" id="metric-active">14</p>
+<p class="metric-sub">2026-05-01 기준</p>
+</div>
+<div class="metric-card">
+<p class="metric-label">Watch list</p>
+<p class="metric-value" id="metric-watch">10</p>
+<p class="metric-sub">catalyst 대기</p>
+</div>
+<div class="metric-card">
+<p class="metric-label">최단 lead time</p>
+<p class="metric-value">6–9M</p>
+<p class="metric-sub">PMIC, optical, DRAM</p>
+</div>
+<div class="metric-card">
+<p class="metric-label">최장 lead time</p>
+<p class="metric-value">36–60M</p>
+<p class="metric-sub">SMR PPA</p>
+</div>
+</div>
+
+<p class="section-title">레이어 필터</p>
+<div class="filter-bar" id="filters">
+<button class="chip active" data-filter="all">전체</button>
+<button class="chip" data-filter="active">활성 신호만</button>
+<button class="chip" data-filter="watch">Watch list만</button>
+<button class="chip" data-filter="power">Power</button>
+<button class="chip" data-filter="cooling">Cooling</button>
+<button class="chip" data-filter="odm">ODM</button>
+<button class="chip" data-filter="compute">Compute</button>
+<button class="chip" data-filter="packaging">Packaging</button>
+<button class="chip" data-filter="hbm">HBM</button>
+<button class="chip" data-filter="dram">Server DRAM</button>
+<button class="chip" data-filter="storage">Storage</button>
+<button class="chip" data-filter="network">Network</button>
+</div>
+
+<div class="table-wrap">
+<table class="signal-table">
+<thead>
+<tr>
+<th style="width: 28%;">신호 / 종목</th>
+<th style="width: 19%;">매핑 레이어</th>
+<th style="width: 11%;">Lead time</th>
+<th style="width: 32%;">의미 / catalyst</th>
+<th style="width: 10%;"></th>
+</tr>
+</thead>
+<tbody id="signal-tbody"></tbody>
+</table>
+</div>
+
+<div class="legend">
+<span class="legend-item"><span class="bottleneck-dot b-high"></span>병목 극심</span>
+<span class="legend-item"><span class="bottleneck-dot b-mid"></span>중간</span>
+<span class="legend-item"><span class="bottleneck-dot b-low"></span>정상</span>
+<span class="legend-item"><span class="bottleneck-dot b-watch"></span>Watch (신호 대기)</span>
+<span class="legend-item"><span class="lt-pill lt-short">6–12M</span></span>
+<span class="legend-item"><span class="lt-pill lt-mid">12–24M</span></span>
+<span class="legend-item"><span class="lt-pill lt-long">24M+</span></span>
+</div>
+
+<div class="footer">
+deep 버튼 클릭 시 Google 검색으로 연결됩니다.
+</div>
+
+</div>
+
+<script>
+const signals = [
+  { name: "콴타서비스 +15.78%", detail: "대규모 수주잔고 발표", layer: "Grid EPC (Layer 1)", filter: ["power"], status: "active", priority: false, bottleneck: "high", lt: "18–24M", ltClass: "lt-mid", meaning: "송전선·변전소 EPC 백로그 = 18–24개월 후 DC 가동", followup: "Quanta Services 수주잔고 분기별 추이" },
+  { name: "오클로 +11.57%, 뉴스케일 +10.07%", detail: "SMR 섹터 강세", layer: "Generation (Layer 1)", filter: ["power"], status: "active", priority: false, bottleneck: "high", lt: "36–60M", ltClass: "lt-long", meaning: "Behind-the-meter SMR PPA = 2028–2030 capacity 신호", followup: "SMR PPA 계약 hyperscaler 매핑" },
+  { name: "비스트라 +2.63%, 컨스텔레이션 +5.39%", detail: "전력망 동반 강세", layer: "Generation (Layer 1)", filter: ["power"], status: "active", priority: false, bottleneck: "high", lt: "12–24M", ltClass: "lt-mid", meaning: "기존 원전 PPA = hyperscaler 단기 전력 확보", followup: "" },
+  { name: "블룸에너지 -1.60%", detail: "전일 급등 후 차익실현", layer: "Generation (Layer 1)", filter: ["power"], status: "active", priority: false, bottleneck: "high", lt: "12–18M", ltClass: "lt-mid", meaning: "Fuel cell behind-the-meter = grid 우회 즉시 전력원", followup: "" },
+  { name: "모놀리식파워 +5.74%", detail: "시간외 +6%, 가이던스 견조", layer: "PMIC (Layer 1)", filter: ["power"], status: "active", priority: false, bottleneck: "high", lt: "6–9M", ltClass: "lt-short", meaning: "Blackwell vertical power delivery 디자인 윈 = GPU 출하 6–9M 선행", followup: "MPS 분기 가이던스 추이" },
+  { name: "TI +4.41%, ADI +3.33%, ON +1.97%", detail: "전력 반도체 동반 강세", layer: "Power semi (Layer 1)", filter: ["power"], status: "active", priority: false, bottleneck: "mid", lt: "6–12M", ltClass: "lt-short", meaning: "AI rack power conversion 부품 수요 확장", followup: "" },
+  { name: "Eaton", detail: "다음 실적: switchgear 백로그", layer: "Switchgear (Layer 1)", filter: ["power"], status: "watch", priority: false, bottleneck: "watch", lt: "12–24M", ltClass: "lt-mid", meaning: "변압기 130주+ 확대 시 = DC 가동 지연 신호", followup: "Eaton switchgear 백로그 추이" },
+  { name: "Schneider / ABB / Hitachi Energy", detail: "EU 상장사 분기 가이던스", layer: "Switchgear (Layer 1)", filter: ["power"], status: "watch", priority: false, bottleneck: "watch", lt: "12–24M", ltClass: "lt-mid", meaning: "글로벌 변전 장비 수요 = grid build-out 진척도", followup: "" },
+  { name: "Vertiv", detail: "다음 분기 실적 + book-to-bill", layer: "CDU / cooling (Layer 2)", filter: ["cooling"], status: "watch", priority: false, bottleneck: "watch", lt: "9–12M", ltClass: "lt-short", meaning: "B2B 1.3+ 유지 시 = liquid cooling ramp 가속", followup: "Vertiv book-to-bill 추이" },
+  { name: "Boyd / nVent / Cooler Master", detail: "cold plate + DLC 공급망", layer: "Cold plate (Layer 2)", filter: ["cooling"], status: "watch", priority: false, bottleneck: "watch", lt: "9–12M", ltClass: "lt-short", meaning: "GB200/GB300 rack 1대당 수백 개 cold plate", followup: "" },
+  { name: "Staubli / CPC / Parker", detail: "QDC 단독 병목", layer: "QDC (Layer 2)", filter: ["cooling"], status: "watch", priority: false, bottleneck: "watch", lt: "12–18M", ltClass: "lt-mid", meaning: "비상장 비중 높음, lead time 40주+ 확인 시 신호", followup: "" },
+  { name: "Quanta (2382.TW / QCT)", detail: "월매출 발표 (매월 10일경)", layer: "Rack ODM (Layer 4)", filter: ["odm"], status: "watch", priority: false, bottleneck: "watch", lt: "3–6M", ltClass: "lt-short", meaning: "GB200 NVL72 주력 ODM, 월매출 YoY = NVDA 출하의 가장 빠른 proxy", followup: "Quanta 2382 월매출 AI 비중" },
+  { name: "Wiwynn (6669.TW)", detail: "월매출 + 분기 실적", layer: "Rack ODM (Layer 4)", filter: ["odm"], status: "watch", priority: false, bottleneck: "watch", lt: "3–6M", ltClass: "lt-short", meaning: "Meta·MS 비중 절대적, hyperscaler capex 가이던스에 직접 연동", followup: "Wiwynn 6669 월매출 추이" },
+  { name: "FII (601138.SH / 2168.HK)", detail: "월매출 + 분기 실적", layer: "Rack ODM (Layer 4)", filter: ["odm"], status: "watch", priority: false, bottleneck: "watch", lt: "3–6M", ltClass: "lt-short", meaning: "Foxconn Industrial · GPU baseboard 글로벌 1위, AI 매출 비중 발표 catalyst", followup: "Foxconn Industrial Internet AI server 매출 비중" },
+  { name: "퀄컴 +15.12%", detail: "데이터센터 사업 강화", layer: "Inference (Layer 5)", filter: ["compute"], status: "active", priority: false, bottleneck: "mid", lt: "12–18M", ltClass: "lt-mid", meaning: "NVDA 의존 분산 + inference workload 별도 분기 신호", followup: "Qualcomm Cloud AI 로드맵" },
+  { name: "AMD +5.16%", detail: "서스퀘하나 목표가 상향", layer: "Training (Layer 5)", filter: ["compute"], status: "active", priority: false, bottleneck: "mid", lt: "9–12M", ltClass: "lt-short", meaning: "MI400 ramp + 서버 CPU 점유율 = HBM4·CoWoS 동반 수요", followup: "" },
+  { name: "브로드컴 +2.95%", detail: "구글 TPU 강화 수혜", layer: "ASIC (Layer 5)", filter: ["compute", "network"], status: "active", priority: false, bottleneck: "mid", lt: "9–12M", ltClass: "lt-short", meaning: "Custom ASIC + scale-out switch 동시 수혜, Tomahawk 6 ramp", followup: "AVGO custom ASIC 매출 비중" },
+  { name: "Marvell", detail: "다음 실적: custom ASIC + DPU", layer: "ASIC / DPU (Layer 5)", filter: ["compute", "network"], status: "watch", priority: false, bottleneck: "watch", lt: "9–12M", ltClass: "lt-short", meaning: "AWS Trainium2 + MS MAIA 파트너, 매출 인식 시점이 catalyst", followup: "" },
+  { name: "엔비디아 -4.63%", detail: "구글 TPU + 옵션 청산", layer: "Training (Layer 5)", filter: ["compute"], status: "active", priority: false, bottleneck: "mid", lt: "6–9M", ltClass: "lt-short", meaning: "단기 sentiment 약화, 펀더멘털 변화는 아님", followup: "" },
+  { name: "TSMC +0.57%", detail: "큰 변동 없음", layer: "Foundry (Layer 6)", filter: ["packaging"], status: "watch", priority: false, bottleneck: "watch", lt: "12–18M", ltClass: "lt-mid", meaning: "월매출 발표가 CoWoS-L capacity의 가장 신뢰도 높은 proxy", followup: "TSMC 월매출 AI 비중 추정" },
+  { name: "ASML +3.22%, AMAT +3.11%, LAM +3.66%", detail: "반발 매수세", layer: "WFE (선행)", filter: ["packaging", "hbm", "dram"], status: "active", priority: false, bottleneck: "mid", lt: "12–18M", ltClass: "lt-mid", meaning: "WFE 수주 = 12–18M 후 wafer + HBM4 base die capacity", followup: "" },
+  { name: "KLA -7% 후 낙폭 축소", detail: "가이던스 시장 기대 미달", layer: "Metrology (선행)", filter: ["packaging"], status: "active", priority: false, bottleneck: "low", lt: "12–18M", ltClass: "lt-mid", meaning: "AI 부문은 견조, 중국 규제가 sentiment 주도", followup: "" },
+  { name: "마이크론 -0.25%", detail: "차익실현, 칩 가격 상승 지속", layer: "HBM3E (Layer 7)", filter: ["hbm", "dram"], status: "active", priority: false, bottleneck: "mid", lt: "12–18M", ltClass: "lt-mid", meaning: "HBM3E supply 정상화, HBM4가 다음 병목", followup: "HBM4 양산 일정" },
+  { name: "SK hynix / Samsung HBM4", detail: "qualification 통과 시점", layer: "HBM4 (Layer 7)", filter: ["hbm"], status: "watch", priority: false, bottleneck: "watch", lt: "12–18M", ltClass: "lt-mid", meaning: "HBM4 base die가 logic foundry까지 묶는 구조, NVDA Rubin 일정에 직결", followup: "" },
+  { name: "DDR5 RDIMM contract price", detail: "TrendForce 월간 발표", layer: "Server DRAM (Layer 8)", filter: ["dram"], status: "watch", priority: true, bottleneck: "high", lt: "6–9M", ltClass: "lt-short", meaning: "월간 +6~9% 상승 지속 시 = 서버 OEM 할당 본격화, 마진 압박", followup: "DDR5 RDIMM 월별 contract price" },
+  { name: "MRDIMM ramp", detail: "Micron / SK 가이던스", layer: "Server DRAM (Layer 8)", filter: ["dram"], status: "watch", priority: true, bottleneck: "high", lt: "6–12M", ltClass: "lt-short", meaning: "차세대 서버 메모리, AI 서버 1대당 1.5TB+ 시대 진입 신호", followup: "MRDIMM 양산 일정" },
+  { name: "삼성·SK 서버 DRAM 분기 가이던스", detail: "분기 실적 컨퍼런스 콜", layer: "Server DRAM (Layer 8)", filter: ["dram"], status: "watch", priority: true, bottleneck: "high", lt: "3–6M", ltClass: "lt-short", meaning: "서버 비중 + ASP 변화율이 직접 신호, mobile 대비 spread 확대 시 short 심화", followup: "삼성 SK 서버 DRAM ASP 추이" },
+  { name: "시게이트 +4.72%", detail: "전일 실적 후 상승 지속", layer: "Nearline HDD (Layer 9)", filter: ["storage"], status: "active", priority: false, bottleneck: "mid", lt: "9–12M", ltClass: "lt-short", meaning: "Training corpus + nearline 수요, lead time 52주+", followup: "HDD nearline 가격 가이던스" },
+  { name: "WDC +5.27%, SanDisk +3.04%", detail: "장중 상승 후 시간외 차익실현", layer: "NVMe SSD (Layer 9)", filter: ["storage"], status: "active", priority: false, bottleneck: "low", lt: "6–9M", ltClass: "lt-short", meaning: "Inference KV cache tiering — 단기 신호로는 약함", followup: "" },
+  { name: "시에나 +10.98%", detail: "AI 광 네트워킹 부각", layer: "DCI (Layer 10)", filter: ["network"], status: "active", priority: false, bottleneck: "mid", lt: "9–12M", ltClass: "lt-short", meaning: "DCI 백본 = 멀티 캠퍼스 train cluster 가동 임박", followup: "Ciena DCI 수주 hyperscaler 분포" },
+  { name: "루멘텀 +5.13%, 코히런트 +4.85%", detail: "광통신 동반 상승", layer: "Optical (Layer 10)", filter: ["network"], status: "active", priority: false, bottleneck: "mid", lt: "6–9M", ltClass: "lt-short", meaning: "800G/1.6T transceiver 출하 = 차세대 GPU rack 설치 선행", followup: "transceiver 800G 1.6T 가이던스" },
+  { name: "Arista", detail: "다음 실적 catalyst", layer: "Scale-out switch (Layer 10)", filter: ["network"], status: "watch", priority: false, bottleneck: "watch", lt: "6–9M", ltClass: "lt-short", meaning: "Meta + MS 비중 60%+, 자본지출 가이던스에 직접 연동", followup: "" },
+  { name: "스카이웍 +11.99%", detail: "WiFi 7 + AI DC", layer: "Connectivity (Layer 10)", filter: ["network"], status: "active", priority: false, bottleneck: "low", lt: "9–12M", ltClass: "lt-short", meaning: "Edge connectivity, DC 직접 영향은 제한적", followup: "" }
+];
+
+const tbody = document.getElementById('signal-tbody');
+const filters = document.getElementById('filters');
+
+document.getElementById('metric-active').textContent = signals.filter(s => s.status === 'active').length;
+document.getElementById('metric-watch').textContent = signals.filter(s => s.status === 'watch').length;
+
+function escapeHtml(text) {
+  const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function render(filter) {
+  let rows;
+  if (filter === 'all') rows = signals;
+  else if (filter === 'active') rows = signals.filter(s => s.status === 'active');
+  else if (filter === 'watch') rows = signals.filter(s => s.status === 'watch');
+  else rows = signals.filter(s => s.filter.includes(filter));
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="no-results">해당 항목 없음</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(s => {
+    const action = s.followup
+      ? `<a class="search-link" href="https://www.google.com/search?q=${encodeURIComponent(s.followup)}" target="_blank" rel="noopener">검색</a>`
+      : '';
+    let rowClass = '';
+    if (s.priority) rowClass = ' class="row-priority"';
+    else if (s.status === 'watch') rowClass = ' class="row-watch"';
+    return `<tr${rowClass}>
+      <td><div class="signal-name">${escapeHtml(s.name)}</div><div class="signal-detail">${escapeHtml(s.detail)}</div></td>
+      <td class="layer-tag"><span class="bottleneck-dot b-${s.bottleneck}"></span>${escapeHtml(s.layer)}</td>
+      <td><span class="lt-pill ${s.ltClass}">${s.lt}</span></td>
+      <td>${escapeHtml(s.meaning)}</td>
+      <td>${action}</td>
+    </tr>`;
+  }).join('');
+}
+
+filters.addEventListener('click', e => {
+  if (!e.target.matches('.chip')) return;
+  filters.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  e.target.classList.add('active');
+  render(e.target.dataset.filter);
+});
+
+render('all');
+</script>
+</body>
+</html>
