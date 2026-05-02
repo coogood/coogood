@@ -14,8 +14,10 @@
   --text-tertiary: #888780;
   --border-tertiary: rgba(0, 0, 0, 0.12);
   --border-secondary: rgba(0, 0, 0, 0.25);
-  --accent-info: #185fa5;
-  --accent-info-bg: #E6F1FB;
+  --pos: #0F6E56;
+  --pos-bg: #E1F5EE;
+  --neg: #993C1D;
+  --neg-bg: #FAECE7;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -28,8 +30,10 @@
     --text-tertiary: #888780;
     --border-tertiary: rgba(255, 255, 255, 0.15);
     --border-secondary: rgba(255, 255, 255, 0.3);
-    --accent-info: #85B7EB;
-    --accent-info-bg: #042C53;
+    --pos: #5DCAA5;
+    --pos-bg: #04342C;
+    --neg: #F0997B;
+    --neg-bg: #4A1B0C;
   }
 }
 
@@ -43,22 +47,34 @@ body {
   line-height: 1.5;
   font-size: 14px;
 }
+.container { max-width: 1200px; margin: 0 auto; }
 
-.container {
-  max-width: 1100px;
-  margin: 0 auto;
+h1 { font-size: 20px; font-weight: 500; margin: 0 0 8px; }
+.subtitle { font-size: 13px; color: var(--text-secondary); margin: 0 0 24px; }
+
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 0.5px solid var(--border-tertiary);
 }
-
-h1 {
-  font-size: 20px;
-  font-weight: 500;
-  margin: 0 0 8px;
-}
-
-.subtitle {
-  font-size: 13px;
+.tab {
+  font-size: 14px;
+  padding: 10px 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
   color: var(--text-secondary);
-  margin: 0 0 24px;
+  font-family: inherit;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -0.5px;
+  transition: all 0.15s;
+}
+.tab:hover { color: var(--text-primary); }
+.tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--text-primary);
+  font-weight: 500;
 }
 
 .alert-card {
@@ -68,19 +84,8 @@ h1 {
   margin-bottom: 20px;
   border-left: 3px solid #E24B4A;
 }
-.alert-card .alert-label {
-  font-size: 12px;
-  color: #791F1F;
-  margin: 0 0 4px;
-}
-.alert-card .alert-value {
-  color: #501313;
-  font-size: 15px;
-  line-height: 1.45;
-  font-weight: 500;
-  margin: 0;
-}
-
+.alert-card .alert-label { font-size: 12px; color: #791F1F; margin: 0 0 4px; }
+.alert-card .alert-value { color: #501313; font-size: 15px; line-height: 1.45; font-weight: 500; margin: 0; }
 @media (prefers-color-scheme: dark) {
   .alert-card { background: #501313; }
   .alert-card .alert-label { color: #F09595; }
@@ -96,59 +101,22 @@ h1 {
 @media (max-width: 600px) {
   .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+.metric-card { background: var(--bg-secondary); border-radius: 8px; padding: 14px 16px; }
+.metric-label { font-size: 12px; color: var(--text-secondary); margin: 0 0 4px; }
+.metric-value { font-size: 22px; font-weight: 500; margin: 0; line-height: 1.2; }
+.metric-sub { font-size: 11px; color: var(--text-tertiary); margin: 4px 0 0; }
 
-.metric-card {
-  background: var(--bg-secondary);
-  border-radius: 8px;
-  padding: 14px 16px;
-}
-.metric-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin: 0 0 4px;
-}
-.metric-value {
-  font-size: 22px;
-  font-weight: 500;
-  margin: 0;
-  line-height: 1.2;
-}
-.metric-sub {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  margin: 4px 0 0;
-}
-
-.section-title {
-  font-size: 14px;
-  font-weight: 500;
-  margin: 0 0 10px;
-}
-
-.filter-bar {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
+.section-title { font-size: 14px; font-weight: 500; margin: 0 0 10px; }
+.filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
 .chip {
-  font-size: 12px;
-  padding: 6px 12px;
-  border-radius: 999px;
+  font-size: 12px; padding: 6px 12px; border-radius: 999px;
   border: 0.5px solid var(--border-tertiary);
-  background: var(--bg-primary);
-  cursor: pointer;
-  color: var(--text-secondary);
-  transition: all 0.15s;
+  background: var(--bg-primary); cursor: pointer;
+  color: var(--text-secondary); transition: all 0.15s;
   font-family: inherit;
 }
 .chip:hover { border-color: var(--border-secondary); }
-.chip.active {
-  background: var(--text-primary);
-  color: var(--bg-primary);
-  border-color: var(--text-primary);
-}
+.chip.active { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); }
 
 .table-wrap {
   overflow-x: auto;
@@ -157,67 +125,36 @@ h1 {
   border-radius: 12px;
 }
 
-.signal-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  min-width: 800px;
-}
+.signal-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px; }
 .signal-table th {
-  text-align: left;
-  font-weight: 500;
-  font-size: 12px;
-  color: var(--text-secondary);
-  padding: 12px 14px;
+  text-align: left; font-weight: 500; font-size: 12px;
+  color: var(--text-secondary); padding: 12px 14px;
   border-bottom: 0.5px solid var(--border-tertiary);
   background: var(--bg-secondary);
 }
-.signal-table td {
-  padding: 12px 14px;
-  border-bottom: 0.5px solid var(--border-tertiary);
-  vertical-align: top;
-}
+.signal-table td { padding: 12px 14px; border-bottom: 0.5px solid var(--border-tertiary); vertical-align: top; }
 .signal-table tr:last-child td { border-bottom: none; }
 
-.signal-name {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-.signal-detail {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  margin-top: 2px;
-}
+.signal-name { font-weight: 500; color: var(--text-primary); }
+.signal-detail { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
 
 .lt-pill {
-  display: inline-block;
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-weight: 500;
-  white-space: nowrap;
+  display: inline-block; font-size: 11px; padding: 2px 8px;
+  border-radius: 999px; font-weight: 500; white-space: nowrap;
 }
 .lt-short { background: #FCEBEB; color: #791F1F; }
 .lt-mid { background: #FAEEDA; color: #633806; }
 .lt-long { background: #E1F5EE; color: #085041; }
-
 @media (prefers-color-scheme: dark) {
   .lt-short { background: #501313; color: #F7C1C1; }
   .lt-mid { background: #412402; color: #FAC775; }
   .lt-long { background: #04342C; color: #9FE1CB; }
 }
 
-.layer-tag {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
+.layer-tag { font-size: 11px; color: var(--text-secondary); }
 .bottleneck-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  margin-right: 6px;
-  vertical-align: middle;
+  display: inline-block; width: 7px; height: 7px;
+  border-radius: 50%; margin-right: 6px; vertical-align: middle;
 }
 .b-high { background: #E24B4A; }
 .b-mid { background: #EF9F27; }
@@ -225,65 +162,98 @@ h1 {
 .b-watch { background: var(--bg-primary); border: 1px solid #888780; }
 
 .search-link {
-  font-size: 11px;
-  padding: 4px 10px;
-  background: transparent;
-  border: 0.5px solid var(--border-secondary);
-  border-radius: 8px;
-  cursor: pointer;
-  color: var(--text-secondary);
-  transition: all 0.15s;
-  white-space: nowrap;
-  text-decoration: none;
-  display: inline-block;
-  font-family: inherit;
+  font-size: 11px; padding: 4px 10px; background: transparent;
+  border: 0.5px solid var(--border-secondary); border-radius: 8px;
+  cursor: pointer; color: var(--text-secondary);
+  transition: all 0.15s; white-space: nowrap;
+  text-decoration: none; display: inline-block; font-family: inherit;
 }
-.search-link:hover {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
+.search-link:hover { background: var(--bg-secondary); color: var(--text-primary); }
 
 .legend {
-  display: flex;
-  gap: 14px;
-  font-size: 11px;
-  color: var(--text-tertiary);
-  margin: 16px 0 0;
-  flex-wrap: wrap;
+  display: flex; gap: 14px; font-size: 11px;
+  color: var(--text-tertiary); margin: 16px 0 0; flex-wrap: wrap;
 }
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
+.legend-item { display: flex; align-items: center; gap: 5px; }
 
-.no-results {
-  text-align: center;
-  padding: 32px 16px;
-  color: var(--text-tertiary);
-  font-size: 13px;
-}
-
+.no-results { text-align: center; padding: 32px 16px; color: var(--text-tertiary); font-size: 13px; }
 .row-watch { background: var(--bg-secondary); }
-.row-watch .signal-name {
-  color: var(--text-secondary);
-  font-weight: 400;
-}
+.row-watch .signal-name { color: var(--text-secondary); font-weight: 400; }
 .row-priority { background: #FCEBEB; }
 .row-priority .signal-name { color: #501313; }
-
 @media (prefers-color-scheme: dark) {
   .row-priority { background: #501313; }
   .row-priority .signal-name { color: #F7C1C1; }
 }
 
+.tracker-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 1100px; }
+.tracker-table th {
+  text-align: left; font-weight: 500; font-size: 11px;
+  color: var(--text-secondary); padding: 10px 10px;
+  border-bottom: 0.5px solid var(--border-tertiary);
+  background: var(--bg-secondary);
+  white-space: nowrap;
+}
+.tracker-table td {
+  padding: 10px 10px;
+  border-bottom: 0.5px solid var(--border-tertiary);
+  vertical-align: middle;
+}
+.tracker-table tr.layer-row td {
+  background: var(--bg-secondary);
+  font-size: 11px; font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 6px 10px;
+}
+.vendor-cell { white-space: nowrap; }
+.vendor-name-tr { font-weight: 500; }
+.ticker-tr { font-size: 10.5px; color: var(--text-tertiary); display: block; margin-top: 1px; }
+
+.metric-cell { font-variant-numeric: tabular-nums; font-size: 12.5px; display: block; }
+.metric-current { font-weight: 500; }
+.metric-prev { font-size: 10.5px; color: var(--text-tertiary); display: block; margin-top: 1px; }
+.delta {
+  display: inline-block; font-size: 10.5px;
+  padding: 1px 6px; border-radius: 4px;
+  margin-left: 4px; font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.delta-pos { background: var(--pos-bg); color: var(--pos); }
+.delta-neg { background: var(--neg-bg); color: var(--neg); }
+.delta-flat { background: var(--bg-secondary); color: var(--text-tertiary); }
+
+.health-cell { text-align: center; }
+.health-bar { display: inline-flex; gap: 3px; align-items: center; }
+.health-dot { width: 8px; height: 8px; border-radius: 50%; }
+.h-on { background: var(--pos); }
+.h-warn { background: #EF9F27; }
+.h-off { background: #E24B4A; }
+.h-na { background: var(--bg-secondary); border: 1px solid var(--border-tertiary); }
+
+.next-event { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+.next-event-date { font-weight: 500; color: var(--text-primary); }
+
+.notes-cell { font-size: 11px; color: var(--text-secondary); }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.tracker-help {
+  background: var(--bg-secondary); border-radius: 8px;
+  padding: 12px 16px; margin-bottom: 16px;
+  font-size: 12px; color: var(--text-secondary);
+  line-height: 1.6;
+}
+.tracker-help strong { color: var(--text-primary); }
+.tracker-help .legend-inline { display: inline-flex; align-items: center; gap: 4px; margin: 0 6px; }
+.tracker-help .health-dot { width: 7px; height: 7px; }
+
 .footer {
-  margin-top: 32px;
-  padding-top: 16px;
+  margin-top: 32px; padding-top: 16px;
   border-top: 0.5px solid var(--border-tertiary);
-  font-size: 11px;
-  color: var(--text-tertiary);
-  text-align: center;
+  font-size: 11px; color: var(--text-tertiary); text-align: center;
 }
 </style>
 </head>
@@ -291,7 +261,14 @@ h1 {
 <div class="container">
 
 <h1>AI 데이터센터 공급망 선행지표 대시보드</h1>
-<p class="subtitle">시황 신호를 레이어별 수요와 lead time에 매핑 · 마지막 업데이트: 2026-05-01</p>
+<p class="subtitle">시황 신호 + 업체별 매출·가이던스·RPO 트래킹 · 마지막 업데이트: 2026-05-01</p>
+
+<div class="tab-bar">
+<button class="tab active" data-tab="signals">시황 신호 모드</button>
+<button class="tab" data-tab="tracker">업체 트래커 모드</button>
+</div>
+
+<div class="tab-content active" id="tab-signals">
 
 <div class="alert-card">
 <p class="alert-label">현재 신규 경고</p>
@@ -299,26 +276,10 @@ h1 {
 </div>
 
 <div class="summary-grid">
-<div class="metric-card">
-<p class="metric-label">활성 신호</p>
-<p class="metric-value" id="metric-active">14</p>
-<p class="metric-sub">2026-05-01 기준</p>
-</div>
-<div class="metric-card">
-<p class="metric-label">Watch list</p>
-<p class="metric-value" id="metric-watch">10</p>
-<p class="metric-sub">catalyst 대기</p>
-</div>
-<div class="metric-card">
-<p class="metric-label">최단 lead time</p>
-<p class="metric-value">6–9M</p>
-<p class="metric-sub">PMIC, optical, DRAM</p>
-</div>
-<div class="metric-card">
-<p class="metric-label">최장 lead time</p>
-<p class="metric-value">36–60M</p>
-<p class="metric-sub">SMR PPA</p>
-</div>
+<div class="metric-card"><p class="metric-label">활성 신호</p><p class="metric-value" id="metric-active">14</p><p class="metric-sub">2026-05-01 기준</p></div>
+<div class="metric-card"><p class="metric-label">Watch list</p><p class="metric-value" id="metric-watch">10</p><p class="metric-sub">catalyst 대기</p></div>
+<div class="metric-card"><p class="metric-label">최단 lead time</p><p class="metric-value">6–9M</p><p class="metric-sub">PMIC, optical, DRAM</p></div>
+<div class="metric-card"><p class="metric-label">최장 lead time</p><p class="metric-value">36–60M</p><p class="metric-sub">SMR PPA</p></div>
 </div>
 
 <p class="section-title">레이어 필터</p>
@@ -362,8 +323,52 @@ h1 {
 <span class="legend-item"><span class="lt-pill lt-long">24M+</span></span>
 </div>
 
+</div>
+
+<div class="tab-content" id="tab-tracker">
+
+<div class="tracker-help">
+<strong>읽는 법</strong> — 각 업체의 직전 분기/월 실제 숫자를 입력하면, 직전 대비 변화율(QoQ, YoY)이 자동 계산되어 빨강/초록 칩으로 표시됩니다. 종합 health는 매출·가이던스·RPO 세 지표를 합산:
+<span class="legend-inline"><span class="health-dot h-on"></span> 셋 다 우상향 (사이클 중)</span>
+<span class="legend-inline"><span class="health-dot h-warn"></span> 엇갈림 (변곡점 의심)</span>
+<span class="legend-inline"><span class="health-dot h-off"></span> 둔화/감소 (수요 꺼짐 신호)</span>
+업데이트는 실적 발표 후 코드 안의 <strong>vendors</strong> 배열에서 숫자만 수정하시면 됩니다. 표시된 숫자는 placeholder로, 실제 발표값으로 교체해서 운영하세요.
+</div>
+
+<p class="section-title">레이어 필터</p>
+<div class="filter-bar" id="tracker-filters">
+<button class="chip active" data-filter="all">전체</button>
+<button class="chip" data-filter="power">Power</button>
+<button class="chip" data-filter="cooling">Cooling</button>
+<button class="chip" data-filter="odm">ODM</button>
+<button class="chip" data-filter="compute">Compute</button>
+<button class="chip" data-filter="packaging">Packaging</button>
+<button class="chip" data-filter="memory">Memory</button>
+<button class="chip" data-filter="storage">Storage</button>
+<button class="chip" data-filter="network">Network</button>
+</div>
+
+<div class="table-wrap">
+<table class="tracker-table">
+<thead>
+<tr>
+<th style="width: 14%;">업체</th>
+<th style="width: 18%;">매출 (직전 발표)</th>
+<th style="width: 18%;">가이던스 (다음 분기)</th>
+<th style="width: 18%;">RPO / 백로그 / B2B</th>
+<th style="width: 9%;">건강도</th>
+<th style="width: 11%;">다음 발표</th>
+<th style="width: 12%;">코멘트</th>
+</tr>
+</thead>
+<tbody id="tracker-tbody"></tbody>
+</table>
+</div>
+
+</div>
+
 <div class="footer">
-deep 버튼 클릭 시 Google 검색으로 연결됩니다.
+검색 버튼 클릭 시 Google 검색으로 연결됩니다. 데이터 업데이트는 HTML의 vendors 배열 수정.
 </div>
 
 </div>
@@ -405,18 +410,158 @@ const signals = [
   { name: "스카이웍 +11.99%", detail: "WiFi 7 + AI DC", layer: "Connectivity (Layer 10)", filter: ["network"], status: "active", priority: false, bottleneck: "low", lt: "9–12M", ltClass: "lt-short", meaning: "Edge connectivity, DC 직접 영향은 제한적", followup: "" }
 ];
 
+const vendors = [
+  { layer: "power", layerName: "Power · Grid EPC", name: "Quanta Services", ticker: "PWR",
+    revenue: { current: 6.6, prev: 6.2, period: "26Q1", unit: "$bn" },
+    guidance: { current: 6.8, prev: 6.4, period: "26Q2 가이던스", unit: "$bn" },
+    rpo: { current: 36.5, prev: 33.9, period: "RPO", unit: "$bn" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-08", note: "RPO 신고가" },
+
+  { layer: "power", layerName: "Power · Switchgear", name: "Eaton", ticker: "ETN",
+    revenue: { current: 6.6, prev: 6.4, period: "26Q1", unit: "$bn" },
+    guidance: { current: 8, prev: 8, period: "organic +%", unit: "%" },
+    rpo: { current: 12.5, prev: 12.1, period: "백로그", unit: "$bn" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-08", note: "변압기 lead 130주+" },
+
+  { layer: "power", layerName: "Power · Switchgear", name: "Schneider Electric", ticker: "SU.PA",
+    revenue: { current: 9.7, prev: 9.4, period: "26Q1", unit: "€bn" },
+    guidance: { current: 10, prev: 10, period: "organic +%", unit: "%" },
+    rpo: { current: null, prev: null, period: "수주 (코멘트)", unit: "" },
+    health: "on", nextEvent: "26 H1 실적", nextDate: "2026-07", note: "DC 부문 강세" },
+
+  { layer: "power", layerName: "Power · PMIC", name: "Monolithic Power", ticker: "MPWR",
+    revenue: { current: 0.62, prev: 0.55, period: "26Q1", unit: "$bn" },
+    guidance: { current: 0.66, prev: 0.58, period: "26Q2", unit: "$bn" },
+    rpo: { current: null, prev: null, period: "Enterprise data 비중", unit: "" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-08", note: "Blackwell 디자인 윈 유지" },
+
+  { layer: "power", layerName: "Power · Generation", name: "Vistra", ticker: "VST",
+    revenue: { current: 4.6, prev: 4.2, period: "26Q1", unit: "$bn" },
+    guidance: { current: 6.5, prev: 6.0, period: "EBITDA 가이던스", unit: "$bn" },
+    rpo: { current: null, prev: null, period: "신규 PPA 발표", unit: "" },
+    health: "on", nextEvent: "신규 PPA 발표", nextDate: "수시", note: "hyperscaler PPA 핵심" },
+
+  { layer: "cooling", layerName: "Cooling · CDU", name: "Vertiv", ticker: "VRT",
+    revenue: { current: 2.4, prev: 2.0, period: "26Q1", unit: "$bn" },
+    guidance: { current: 2.55, prev: 2.10, period: "26Q2", unit: "$bn" },
+    rpo: { current: 8.1, prev: 7.4, period: "백로그", unit: "$bn" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-07", note: "B2B 1.4 유지" },
+
+  { layer: "cooling", layerName: "Cooling · Components", name: "nVent", ticker: "NVT",
+    revenue: { current: 0.95, prev: 0.86, period: "26Q1", unit: "$bn" },
+    guidance: { current: null, prev: null, period: "DC 부문 +%", unit: "" },
+    rpo: { current: null, prev: null, period: "백로그 코멘트", unit: "" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-08", note: "DC 매출 비중 상승 중" },
+
+  { layer: "odm", layerName: "ODM · 대만", name: "Quanta Computer", ticker: "2382.TW",
+    revenue: { current: 380, prev: 250, period: "26Q1 누적", unit: "B NTD" },
+    guidance: { current: null, prev: null, period: "월매출 YoY", unit: "" },
+    rpo: { current: null, prev: null, period: "AI server 비중", unit: "" },
+    health: "on", nextEvent: "월매출", nextDate: "매월 10일", note: "GB200 NVL72 주력" },
+
+  { layer: "odm", layerName: "ODM · 대만", name: "Wiwynn", ticker: "6669.TW",
+    revenue: { current: 95, prev: 82, period: "26Q1", unit: "B NTD" },
+    guidance: { current: null, prev: null, period: "월매출 QoQ", unit: "" },
+    rpo: { current: null, prev: null, period: "Meta/MS 비중", unit: "" },
+    health: "on", nextEvent: "월매출", nextDate: "매월 10일", note: "Meta capex에 가장 sensitive" },
+
+  { layer: "odm", layerName: "ODM · 중국", name: "FII", ticker: "601138.SH",
+    revenue: { current: 175, prev: 148, period: "26Q1", unit: "B CNY" },
+    guidance: { current: null, prev: null, period: "Cloud 매출 +%", unit: "" },
+    rpo: { current: null, prev: null, period: "GPU module 매출", unit: "" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-08", note: "GPU baseboard 1위" },
+
+  { layer: "compute", layerName: "Compute · Training GPU", name: "NVIDIA", ticker: "NVDA",
+    revenue: { current: 49, prev: 43, period: "DC 매출 26Q1", unit: "$bn" },
+    guidance: { current: 53, prev: 47, period: "26Q2", unit: "$bn" },
+    rpo: { current: null, prev: null, period: "supply 코멘트", unit: "" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-08", note: "supply tight 멘트 유지" },
+
+  { layer: "compute", layerName: "Compute · Training GPU", name: "AMD", ticker: "AMD",
+    revenue: { current: 4.1, prev: 3.7, period: "DC GPU 26Q1", unit: "$bn" },
+    guidance: { current: 9.5, prev: 8.5, period: "연간 MI 매출", unit: "$bn" },
+    rpo: { current: null, prev: null, period: "MI400 ramp", unit: "" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-08", note: "연간 가이던스 raise 지속" },
+
+  { layer: "compute", layerName: "Compute · ASIC", name: "Broadcom", ticker: "AVGO",
+    revenue: { current: 5.5, prev: 4.9, period: "AI 매출 26Q1", unit: "$bn" },
+    guidance: { current: 60, prev: 50, period: "AI TAM 2027", unit: "$bn" },
+    rpo: { current: null, prev: null, period: "신규 hyperscaler", unit: "" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-09", note: "구글 TPU 강화 수혜" },
+
+  { layer: "compute", layerName: "Compute · ASIC/DPU", name: "Marvell", ticker: "MRVL",
+    revenue: { current: 2.0, prev: 1.8, period: "DC 매출 26Q1", unit: "$bn" },
+    guidance: { current: 2.1, prev: 1.9, period: "26Q2", unit: "$bn" },
+    rpo: { current: null, prev: null, period: "ASIC 디자인 윈", unit: "" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-08", note: "Trainium2 + MAIA ramp" },
+
+  { layer: "packaging", layerName: "Foundry", name: "TSMC", ticker: "2330.TW",
+    revenue: { current: 28.4, prev: 26.4, period: "26Q1", unit: "$bn" },
+    guidance: { current: 31, prev: 28, period: "26Q2", unit: "$bn" },
+    rpo: { current: null, prev: null, period: "HPC 비중", unit: "" },
+    health: "on", nextEvent: "월매출 + 26Q2", nextDate: "매월 10일", note: "HPC 비중 50%+" },
+
+  { layer: "memory", layerName: "Memory · HBM/DRAM", name: "SK hynix", ticker: "000660.KS",
+    revenue: { current: 18.5, prev: 16.4, period: "26Q1", unit: "T KRW" },
+    guidance: { current: null, prev: null, period: "HBM bit shipment", unit: "" },
+    rpo: { current: null, prev: null, period: "HBM 비중", unit: "" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-07", note: "HBM 비중 50%+ 진입" },
+
+  { layer: "memory", layerName: "Memory · DRAM/NAND", name: "Samsung", ticker: "005930.KS",
+    revenue: { current: 26, prev: 23, period: "DS 부문 26Q1", unit: "T KRW" },
+    guidance: { current: null, prev: null, period: "서버 DRAM 가이던스", unit: "" },
+    rpo: { current: null, prev: null, period: "HBM4 quali", unit: "" },
+    health: "warn", nextEvent: "26Q2 실적", nextDate: "2026-07", note: "HBM4 qualification 진행 중" },
+
+  { layer: "memory", layerName: "Memory · HBM/DRAM", name: "Micron", ticker: "MU",
+    revenue: { current: 9.1, prev: 8.2, period: "DC 매출 26Q1", unit: "$bn" },
+    guidance: { current: 9.8, prev: 8.7, period: "26Q2", unit: "$bn" },
+    rpo: { current: null, prev: null, period: "HBM/MRDIMM 멘트", unit: "" },
+    health: "on", nextEvent: "26Q3 실적", nextDate: "2026-06", note: "MRDIMM ramp 가이던스" },
+
+  { layer: "storage", layerName: "Storage · HDD", name: "Seagate", ticker: "STX",
+    revenue: { current: 2.6, prev: 2.4, period: "26Q1", unit: "$bn" },
+    guidance: { current: 2.7, prev: 2.5, period: "26Q2", unit: "$bn" },
+    rpo: { current: null, prev: null, period: "BTO 가시성", unit: "" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-07", note: "build-to-order 가시성 12개월+" },
+
+  { layer: "network", layerName: "Network · Switch", name: "Arista", ticker: "ANET",
+    revenue: { current: 2.3, prev: 2.1, period: "26Q1", unit: "$bn" },
+    guidance: { current: 9.0, prev: 8.4, period: "연간 매출", unit: "$bn" },
+    rpo: { current: 3.0, prev: 2.8, period: "deferred revenue", unit: "$bn" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-08", note: "Meta+MS 비중 60%+" },
+
+  { layer: "network", layerName: "Network · DCI", name: "Ciena", ticker: "CIEN",
+    revenue: { current: 1.15, prev: 1.05, period: "26Q1", unit: "$bn" },
+    guidance: { current: 1.20, prev: 1.10, period: "26Q2", unit: "$bn" },
+    rpo: { current: 2.5, prev: 2.4, period: "백로그", unit: "$bn" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-09", note: "Cloud 비중 35%+" },
+
+  { layer: "network", layerName: "Network · Optical", name: "Coherent", ticker: "COHR",
+    revenue: { current: 1.55, prev: 1.40, period: "26Q1", unit: "$bn" },
+    guidance: { current: 1.65, prev: 1.45, period: "26Q2", unit: "$bn" },
+    rpo: { current: null, prev: null, period: "800G/1.6T 가이던스", unit: "" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-08", note: "1.6T 전환 본격화" },
+
+  { layer: "network", layerName: "Network · Optical", name: "Lumentum", ticker: "LITE",
+    revenue: { current: 0.50, prev: 0.45, period: "26Q1", unit: "$bn" },
+    guidance: { current: 0.54, prev: 0.48, period: "26Q2", unit: "$bn" },
+    rpo: { current: null, prev: null, period: "DC 매출 비중", unit: "" },
+    health: "on", nextEvent: "26Q2 실적", nextDate: "2026-08", note: "DC 매출 비중 가속" }
+];
+
 const tbody = document.getElementById('signal-tbody');
 const filters = document.getElementById('filters');
-
 document.getElementById('metric-active').textContent = signals.filter(s => s.status === 'active').length;
 document.getElementById('metric-watch').textContent = signals.filter(s => s.status === 'watch').length;
 
 function escapeHtml(text) {
+  if (text === null || text === undefined) return '';
   const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
-  return text.replace(/[&<>"']/g, m => map[m]);
+  return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
-function render(filter) {
+function renderSignals(filter) {
   let rows;
   if (filter === 'all') rows = signals;
   else if (filter === 'active') rows = signals.filter(s => s.status === 'active');
@@ -448,10 +593,105 @@ filters.addEventListener('click', e => {
   if (!e.target.matches('.chip')) return;
   filters.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
   e.target.classList.add('active');
-  render(e.target.dataset.filter);
+  renderSignals(e.target.dataset.filter);
 });
 
-render('all');
+const trackerTbody = document.getElementById('tracker-tbody');
+const trackerFilters = document.getElementById('tracker-filters');
+
+function formatMetric(m) {
+  if (!m || m.current === null || m.current === undefined) {
+    const periodTxt = m && m.period ? m.period : '—';
+    return `<span class="metric-cell"><span class="metric-current" style="color: var(--text-tertiary)">데이터 없음</span><span class="metric-prev">${escapeHtml(periodTxt)}</span></span>`;
+  }
+  const cur = m.current;
+  const prev = m.prev;
+  let deltaHtml = '';
+  if (prev !== null && prev !== undefined && prev !== 0) {
+    const pct = ((cur - prev) / prev) * 100;
+    const pctStr = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+    let cls = 'delta-flat';
+    if (pct > 1) cls = 'delta-pos';
+    else if (pct < -1) cls = 'delta-neg';
+    deltaHtml = `<span class="delta ${cls}">${pctStr}</span>`;
+  }
+  const unit = m.unit || '';
+  const curStr = typeof cur === 'number' ? cur.toLocaleString('en-US', { maximumFractionDigits: 2 }) : cur;
+  const prevStr = (prev !== null && prev !== undefined) ? (typeof prev === 'number' ? prev.toLocaleString('en-US', { maximumFractionDigits: 2 }) : prev) : '';
+  return `<span class="metric-cell">
+    <span class="metric-current">${curStr} ${escapeHtml(unit)}${deltaHtml}</span>
+    <span class="metric-prev">${escapeHtml(m.period)}${prevStr ? ' · 직전 ' + prevStr + ' ' + escapeHtml(unit) : ''}</span>
+  </span>`;
+}
+
+function renderHealth(h) {
+  const map = {
+    on: { dots: ['h-on', 'h-on', 'h-on'], label: '사이클 중' },
+    warn: { dots: ['h-on', 'h-warn', 'h-warn'], label: '엇갈림' },
+    off: { dots: ['h-off', 'h-off', 'h-off'], label: '꺼짐' },
+    na: { dots: ['h-na', 'h-na', 'h-na'], label: '데이터 부족' }
+  };
+  const cfg = map[h] || map.na;
+  const dots = cfg.dots.map(c => `<span class="health-dot ${c}"></span>`).join('');
+  return `<span class="health-bar" title="${cfg.label}">${dots}</span>`;
+}
+
+function renderTracker(filter) {
+  const rows = filter === 'all' ? vendors : vendors.filter(v => v.layer === filter);
+  if (rows.length === 0) {
+    trackerTbody.innerHTML = '<tr><td colspan="7" class="no-results">해당 레이어 없음</td></tr>';
+    return;
+  }
+  const grouped = {};
+  const order = [];
+  rows.forEach(v => {
+    if (!grouped[v.layerName]) {
+      grouped[v.layerName] = [];
+      order.push(v.layerName);
+    }
+    grouped[v.layerName].push(v);
+  });
+
+  let html = '';
+  order.forEach(layerName => {
+    html += `<tr class="layer-row"><td colspan="7">${escapeHtml(layerName)}</td></tr>`;
+    grouped[layerName].forEach(v => {
+      const searchQ = encodeURIComponent(`${v.name} ${v.ticker} latest earnings backlog`);
+      html += `<tr>
+        <td class="vendor-cell">
+          <div class="vendor-name-tr">${escapeHtml(v.name)}</div>
+          <span class="ticker-tr">${escapeHtml(v.ticker)}</span>
+        </td>
+        <td>${formatMetric(v.revenue)}</td>
+        <td>${formatMetric(v.guidance)}</td>
+        <td>${formatMetric(v.rpo)}</td>
+        <td class="health-cell">${renderHealth(v.health)}</td>
+        <td class="next-event"><span class="next-event-date">${escapeHtml(v.nextDate)}</span><br>${escapeHtml(v.nextEvent)}</td>
+        <td class="notes-cell">${escapeHtml(v.note)} <a class="search-link" style="margin-left:4px" href="https://www.google.com/search?q=${searchQ}" target="_blank" rel="noopener">↗</a></td>
+      </tr>`;
+    });
+  });
+  trackerTbody.innerHTML = html;
+}
+
+trackerFilters.addEventListener('click', e => {
+  if (!e.target.matches('.chip')) return;
+  trackerFilters.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  e.target.classList.add('active');
+  renderTracker(e.target.dataset.filter);
+});
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+renderSignals('all');
+renderTracker('all');
 </script>
 </body>
 </html>
