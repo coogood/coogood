@@ -18,6 +18,16 @@
   --pos-bg: #E1F5EE;
   --neg: #993C1D;
   --neg-bg: #FAECE7;
+  /* Bottleneck colors for map */
+  --map-red-bg: #FCEBEB;
+  --map-red-stroke: #E24B4A;
+  --map-amber-bg: #FAEEDA;
+  --map-amber-stroke: #EF9F27;
+  --map-yellow-bg: #FBF8E1;
+  --map-yellow-stroke: #C9A227;
+  --map-gray-bg: #F0EFE9;
+  --map-gray-stroke: #888780;
+  --map-text: #1a1a1a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -34,6 +44,15 @@
     --pos-bg: #04342C;
     --neg: #F0997B;
     --neg-bg: #4A1B0C;
+    --map-red-bg: #3D1212;
+    --map-red-stroke: #E24B4A;
+    --map-amber-bg: #3D2A0F;
+    --map-amber-stroke: #EF9F27;
+    --map-yellow-bg: #332B0F;
+    --map-yellow-stroke: #C9A227;
+    --map-gray-bg: #2A2A28;
+    --map-gray-stroke: #888780;
+    --map-text: #f5f4ee;
   }
 }
 
@@ -57,6 +76,7 @@ h1 { font-size: 20px; font-weight: 500; margin: 0 0 8px; }
   gap: 4px;
   margin-bottom: 24px;
   border-bottom: 0.5px solid var(--border-tertiary);
+  flex-wrap: wrap;
 }
 .tab {
   font-size: 14px;
@@ -240,15 +260,56 @@ h1 { font-size: 20px; font-weight: 500; margin: 0 0 8px; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
-.tracker-help {
+.tracker-help, .map-help {
   background: var(--bg-secondary); border-radius: 8px;
   padding: 12px 16px; margin-bottom: 16px;
   font-size: 12px; color: var(--text-secondary);
   line-height: 1.6;
 }
-.tracker-help strong { color: var(--text-primary); }
+.tracker-help strong, .map-help strong { color: var(--text-primary); }
 .tracker-help .legend-inline { display: inline-flex; align-items: center; gap: 4px; margin: 0 6px; }
 .tracker-help .health-dot { width: 7px; height: 7px; }
+
+/* Map styles */
+.map-wrap {
+  background: var(--bg-primary);
+  border: 0.5px solid var(--border-tertiary);
+  border-radius: 12px;
+  padding: 20px;
+  overflow-x: auto;
+}
+.supply-map {
+  width: 100%;
+  max-width: 700px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+.supply-map .m-th { font-size: 13px; font-weight: 500; fill: var(--map-text); }
+.supply-map .m-ts { font-size: 11px; fill: var(--map-text); }
+.supply-map .m-ts-sec { font-size: 10.5px; fill: var(--text-secondary); }
+.supply-map .arr { stroke: var(--text-tertiary); stroke-width: 1.5; fill: none; }
+.supply-map .c-red rect { fill: var(--map-red-bg); stroke: var(--map-red-stroke); }
+.supply-map .c-amber rect { fill: var(--map-amber-bg); stroke: var(--map-amber-stroke); }
+.supply-map .c-yellow rect { fill: var(--map-yellow-bg); stroke: var(--map-yellow-stroke); }
+.supply-map .c-gray rect { fill: var(--map-gray-bg); stroke: var(--map-gray-stroke); }
+.supply-map .layer-group { cursor: pointer; transition: opacity 0.15s; }
+.supply-map .layer-group:hover { opacity: 0.85; }
+
+.map-legend {
+  display: flex; gap: 18px; flex-wrap: wrap;
+  margin-top: 16px; font-size: 11px;
+  color: var(--text-tertiary);
+}
+.map-legend-swatch {
+  display: inline-block; width: 12px; height: 12px;
+  border-radius: 3px; margin-right: 5px;
+  vertical-align: middle; border: 0.5px solid;
+}
+.swatch-red { background: var(--map-red-bg); border-color: var(--map-red-stroke); }
+.swatch-amber { background: var(--map-amber-bg); border-color: var(--map-amber-stroke); }
+.swatch-yellow { background: var(--map-yellow-bg); border-color: var(--map-yellow-stroke); }
+.swatch-gray { background: var(--map-gray-bg); border-color: var(--map-gray-stroke); }
 
 .footer {
   margin-top: 32px; padding-top: 16px;
@@ -261,14 +322,198 @@ h1 { font-size: 20px; font-weight: 500; margin: 0 0 8px; }
 <div class="container">
 
 <h1>AI 데이터센터 공급망 선행지표 대시보드</h1>
-<p class="subtitle">시황 신호 + 업체별 매출·가이던스·RPO 트래킹 · 마지막 업데이트: 2026-05-01</p>
+<p class="subtitle">공급망 구조도 + 시황 신호 + 업체 트래킹 · 마지막 업데이트: 2026-05-01</p>
 
 <div class="tab-bar">
-<button class="tab active" data-tab="signals">시황 신호 모드</button>
+<button class="tab active" data-tab="map">공급망 맵</button>
+<button class="tab" data-tab="signals">시황 신호 모드</button>
 <button class="tab" data-tab="tracker">업체 트래커 모드</button>
 </div>
 
-<div class="tab-content active" id="tab-signals">
+<!-- ============== 공급망 맵 ============== -->
+<div class="tab-content active" id="tab-map">
+
+<div class="map-help">
+<strong>읽는 법</strong> — 11개 레이어가 발전(Power)부터 운영(Software)까지 위에서 아래로 흐릅니다. 색상은 현재 병목 강도. 레이어를 클릭하면 시황 신호 모드의 해당 레이어 필터로 이동합니다.
+</div>
+
+<div class="map-wrap">
+<svg class="supply-map" viewBox="0 0 680 1480" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>AI 데이터센터 공급망 구조도</title>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<text class="m-th" x="40" y="30">AI 데이터센터 공급망 — 11개 레이어, 병목 강도</text>
+<text class="m-ts-sec" x="40" y="48">색상: 빨강 = 극심 병목, 주황 = 강한 병목, 노랑 = 중간, 회색 = 정상</text>
+
+<g class="layer-group" data-layer="power">
+<g class="c-red"><rect x="40" y="68" width="600" height="124" rx="10" stroke-width="0.5"/></g>
+<text class="m-th" x="56" y="90">1. Power &amp; Energy</text>
+<text class="m-ts" x="56" y="106">Lead time 3–7년 · 최상위 병목</text>
+<g class="c-red"><rect x="56" y="118" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="148" y="138" text-anchor="middle">Generation</text>
+<text class="m-ts-sec" x="148" y="166" text-anchor="middle">Oklo, NuScale, Bloom, Vistra</text>
+<g class="c-red"><rect x="248" y="118" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="340" y="138" text-anchor="middle">Grid EPC</text>
+<text class="m-ts-sec" x="340" y="166" text-anchor="middle">Quanta Svc, MYR, MasTec</text>
+<g class="c-red"><rect x="440" y="118" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="532" y="138" text-anchor="middle">Switchgear / UPS</text>
+<text class="m-ts-sec" x="532" y="166" text-anchor="middle">Eaton, Schneider, ABB, Hitachi</text>
+<g class="c-red"><rect x="156" y="178" width="368" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="340" y="198" text-anchor="middle">Power semi / PMIC: MPS, TI, ADI, ON, Infineon</text>
+</g>
+<line x1="340" y1="218" x2="340" y2="236" class="arr" marker-end="url(#arrow)"/>
+
+<g class="layer-group" data-layer="cooling">
+<g class="c-red"><rect x="40" y="238" width="600" height="100" rx="10" stroke-width="0.5"/></g>
+<text class="m-th" x="56" y="260">2. Thermal &amp; Cooling</text>
+<text class="m-ts" x="56" y="276">Lead time 40–60주 · 즉시성 병목 1순위</text>
+<g class="c-red"><rect x="56" y="284" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="148" y="304" text-anchor="middle">CDU / Rack cooling</text>
+<text class="m-ts-sec" x="148" y="332" text-anchor="middle">Vertiv, Schneider, nVent</text>
+<g class="c-red"><rect x="248" y="284" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="340" y="304" text-anchor="middle">Cold plate / DLC</text>
+<text class="m-ts-sec" x="340" y="332" text-anchor="middle">Boyd, Cooler Master, AVC</text>
+<g class="c-red"><rect x="440" y="284" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="532" y="304" text-anchor="middle">QDC / fittings</text>
+<text class="m-ts-sec" x="532" y="332" text-anchor="middle">Staubli, CPC, Parker</text>
+</g>
+<line x1="340" y1="338" x2="340" y2="356" class="arr" marker-end="url(#arrow)"/>
+
+<g class="layer-group">
+<g class="c-amber"><rect x="40" y="358" width="600" height="62" rx="10" stroke-width="0.5"/></g>
+<text class="m-th" x="56" y="380">3. Construction</text>
+<text class="m-ts" x="56" y="396">Shell + fire + cabling · 2–3년 · DLR, Equinix, Vantage, Compass</text>
+</g>
+<line x1="340" y1="420" x2="340" y2="438" class="arr" marker-end="url(#arrow)"/>
+
+<g class="layer-group" data-layer="odm">
+<g class="c-amber"><rect x="40" y="440" width="600" height="100" rx="10" stroke-width="0.5"/></g>
+<text class="m-th" x="56" y="462">4. Rack / System Integration — 대만 ODM 3대장</text>
+<text class="m-ts" x="56" y="478">NVIDIA AI rack의 사실상 단일 공급망</text>
+<g class="c-amber"><rect x="56" y="486" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="148" y="506" text-anchor="middle">Quanta (QCT)</text>
+<text class="m-ts-sec" x="148" y="534" text-anchor="middle">GB200 NVL72 주력</text>
+<g class="c-amber"><rect x="248" y="486" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="340" y="506" text-anchor="middle">Wiwynn</text>
+<text class="m-ts-sec" x="340" y="534" text-anchor="middle">Meta, MS hyperscaler 비중</text>
+<g class="c-amber"><rect x="440" y="486" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="532" y="506" text-anchor="middle">FII (Foxconn Industrial)</text>
+<text class="m-ts-sec" x="532" y="534" text-anchor="middle">2168.HK · GPU baseboard</text>
+</g>
+<line x1="340" y1="540" x2="340" y2="558" class="arr" marker-end="url(#arrow)"/>
+
+<g class="layer-group" data-layer="compute">
+<g class="c-amber"><rect x="40" y="560" width="600" height="116" rx="10" stroke-width="0.5"/></g>
+<text class="m-th" x="56" y="582">5. Compute Silicon</text>
+<text class="m-ts" x="56" y="598">Training / Inference / CPU 분기 + custom ASIC</text>
+<g class="c-amber"><rect x="56" y="608" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="148" y="628" text-anchor="middle">Training GPU</text>
+<text class="m-ts-sec" x="148" y="656" text-anchor="middle">NVDA, AMD, TPU, Trainium</text>
+<g class="c-amber"><rect x="248" y="608" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="340" y="628" text-anchor="middle">Inference / ASIC</text>
+<text class="m-ts-sec" x="340" y="656" text-anchor="middle">Qualcomm, Marvell, AVGO</text>
+<g class="c-gray"><rect x="440" y="608" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="532" y="628" text-anchor="middle">CPU / DPU</text>
+<text class="m-ts-sec" x="532" y="656" text-anchor="middle">Intel, AMD, ARM, NVDA</text>
+</g>
+<line x1="340" y1="676" x2="340" y2="694" class="arr" marker-end="url(#arrow)"/>
+
+<g class="layer-group" data-layer="packaging">
+<g class="c-red"><rect x="40" y="696" width="600" height="100" rx="10" stroke-width="0.5"/></g>
+<text class="m-th" x="56" y="718">6. Advanced Packaging + Foundry</text>
+<text class="m-ts" x="56" y="734">Lead time 12–18개월 · CoWoS-L가 단일 최대 변수</text>
+<g class="c-red"><rect x="56" y="742" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="148" y="762" text-anchor="middle">Foundry</text>
+<text class="m-ts-sec" x="148" y="790" text-anchor="middle">TSMC, Samsung Foundry, Intel</text>
+<g class="c-red"><rect x="248" y="742" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="340" y="762" text-anchor="middle">CoWoS / SoIC</text>
+<text class="m-ts-sec" x="340" y="790" text-anchor="middle">TSMC (단일 공급)</text>
+<g class="c-amber"><rect x="440" y="742" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="532" y="762" text-anchor="middle">ABF substrate</text>
+<text class="m-ts-sec" x="532" y="790" text-anchor="middle">Ibiden, Shinko, Unimicron</text>
+</g>
+<line x1="340" y1="796" x2="340" y2="814" class="arr" marker-end="url(#arrow)"/>
+
+<g class="layer-group" data-layer="hbm">
+<g class="c-red"><rect x="40" y="816" width="600" height="80" rx="10" stroke-width="0.5"/></g>
+<text class="m-th" x="56" y="838">7. HBM (High Bandwidth Memory)</text>
+<text class="m-ts" x="56" y="854">HBM4 base die가 logic foundry까지 묶는 구조</text>
+<g class="c-amber"><rect x="56" y="862" width="280" height="26" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="196" y="879" text-anchor="middle">HBM3E: SK hynix, Samsung, Micron</text>
+<g class="c-red"><rect x="344" y="862" width="280" height="26" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="484" y="879" text-anchor="middle">HBM4: 2026–2027 ramp · 매우 tight</text>
+</g>
+<line x1="340" y1="896" x2="340" y2="914" class="arr" marker-end="url(#arrow)"/>
+
+<g class="layer-group" data-layer="dram">
+<g class="c-red"><rect x="40" y="916" width="600" height="100" rx="10" stroke-width="0.5"/></g>
+<text class="m-th" x="56" y="938">8. Server DRAM — HBM 수준으로 short</text>
+<text class="m-ts" x="56" y="954">HBM의 wafer 흡수 + AI 서버 메모리 dense화로 supply 극심 부족</text>
+<g class="c-red"><rect x="56" y="962" width="568" height="26" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="340" y="979" text-anchor="middle">DDR5 RDIMM / MRDIMM: Samsung, SK hynix, Micron</text>
+<text class="m-ts-sec" x="56" y="1006">Contract price 매월 상승 · spot은 더 가파른 상승 · 서버 OEM 할당량 제한 시작</text>
+</g>
+<line x1="340" y1="1016" x2="340" y2="1034" class="arr" marker-end="url(#arrow)"/>
+
+<g class="layer-group" data-layer="storage">
+<g class="c-amber"><rect x="40" y="1036" width="600" height="80" rx="10" stroke-width="0.5"/></g>
+<text class="m-th" x="56" y="1058">9. Storage</text>
+<text class="m-ts" x="56" y="1074">AI training corpus + KV cache tiering</text>
+<g class="c-gray"><rect x="56" y="1082" width="280" height="26" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="196" y="1099" text-anchor="middle">NVMe SSD: Samsung, SanDisk, Micron, Kioxia</text>
+<g class="c-amber"><rect x="344" y="1082" width="280" height="26" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="484" y="1099" text-anchor="middle">Nearline HDD: Seagate, WD</text>
+</g>
+<line x1="340" y1="1116" x2="340" y2="1134" class="arr" marker-end="url(#arrow)"/>
+
+<g class="layer-group" data-layer="network">
+<g class="c-amber"><rect x="40" y="1136" width="600" height="124" rx="10" stroke-width="0.5"/></g>
+<text class="m-th" x="56" y="1158">10. Network &amp; Interconnect</text>
+<text class="m-ts" x="56" y="1174">Scale-up / Scale-out / DCI / Optical 4단 분리</text>
+<g class="c-gray"><rect x="56" y="1182" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="148" y="1202" text-anchor="middle">Scale-up</text>
+<text class="m-ts-sec" x="148" y="1230" text-anchor="middle">NVLink, UALink, AVGO</text>
+<g class="c-amber"><rect x="248" y="1182" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="340" y="1202" text-anchor="middle">Scale-out switch</text>
+<text class="m-ts-sec" x="340" y="1230" text-anchor="middle">Arista, AVGO, NVDA, Cisco</text>
+<g class="c-amber"><rect x="440" y="1182" width="184" height="32" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts" x="532" y="1202" text-anchor="middle">DCI / long-haul</text>
+<text class="m-ts-sec" x="532" y="1230" text-anchor="middle">Ciena, Infinera, Cisco</text>
+<g class="c-amber"><rect x="156" y="1240" width="368" height="14" rx="6" stroke-width="0.5"/></g>
+<text class="m-ts-sec" x="340" y="1251" text-anchor="middle">Optical 800G/1.6T: Lumentum, Coherent, Innolight, Marvell, Eoptolink</text>
+</g>
+<line x1="340" y1="1260" x2="340" y2="1278" class="arr" marker-end="url(#arrow)"/>
+
+<g class="layer-group">
+<g class="c-gray"><rect x="40" y="1280" width="600" height="62" rx="10" stroke-width="0.5"/></g>
+<text class="m-th" x="56" y="1302">11. Software / Orchestration</text>
+<text class="m-ts" x="56" y="1318">AWS, Azure, GCP · Kubernetes · CUDA / ROCm / XLA</text>
+</g>
+
+<rect x="40" y="1370" width="600" height="100" rx="10" fill="none" stroke="var(--text-tertiary)" stroke-width="0.5" stroke-dasharray="4 3"/>
+<text class="m-th" x="56" y="1392">2026 H1 병목 우선순위</text>
+<text class="m-ts" x="56" y="1412">1순위 Power · 2순위 Cooling · 3순위 HBM4 + Server DRAM (동급) · 4순위 CoWoS-L</text>
+<text class="m-ts-sec" x="56" y="1430">서버 DRAM이 HBM 수준 short인 이유: HBM wafer 흡수 + AI 서버당 768GB→1.5TB dense화</text>
+<text class="m-ts-sec" x="56" y="1448">대만 ODM 3사가 NVIDIA AI rack 사실상 독점 → 4번 layer는 capacity 자체가 변수</text>
+</svg>
+</div>
+
+<div class="map-legend">
+<span><span class="map-legend-swatch swatch-red"></span>병목 극심 (1–2순위)</span>
+<span><span class="map-legend-swatch swatch-amber"></span>강한 병목 (3–4순위)</span>
+<span><span class="map-legend-swatch swatch-yellow"></span>중간</span>
+<span><span class="map-legend-swatch swatch-gray"></span>정상</span>
+<span style="color: var(--text-secondary);">레이어 클릭 → 해당 레이어 신호 보기</span>
+</div>
+
+</div>
+
+<!-- ============== 시황 신호 모드 ============== -->
+<div class="tab-content" id="tab-signals">
 
 <div class="alert-card">
 <p class="alert-label">현재 신규 경고</p>
@@ -325,6 +570,7 @@ h1 { font-size: 20px; font-weight: 500; margin: 0 0 8px; }
 
 </div>
 
+<!-- ============== 업체 트래커 모드 ============== -->
 <div class="tab-content" id="tab-tracker">
 
 <div class="tracker-help">
@@ -332,7 +578,7 @@ h1 { font-size: 20px; font-weight: 500; margin: 0 0 8px; }
 <span class="legend-inline"><span class="health-dot h-on"></span> 셋 다 우상향 (사이클 중)</span>
 <span class="legend-inline"><span class="health-dot h-warn"></span> 엇갈림 (변곡점 의심)</span>
 <span class="legend-inline"><span class="health-dot h-off"></span> 둔화/감소 (수요 꺼짐 신호)</span>
-업데이트는 실적 발표 후 코드 안의 <strong>vendors</strong> 배열에서 숫자만 수정하시면 됩니다. 표시된 숫자는 placeholder로, 실제 발표값으로 교체해서 운영하세요.
+업데이트는 실적 발표 후 코드 안의 <strong>vendors</strong> 배열에서 숫자만 수정하시면 됩니다.
 </div>
 
 <p class="section-title">레이어 필터</p>
@@ -687,6 +933,22 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// 맵 레이어 클릭 → 시황 신호 모드의 해당 필터로 이동
+document.querySelectorAll('.layer-group[data-layer]').forEach(g => {
+  g.addEventListener('click', () => {
+    const layer = g.dataset.layer;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector('.tab[data-tab="signals"]').classList.add('active');
+    document.getElementById('tab-signals').classList.add('active');
+    filters.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    const targetChip = filters.querySelector(`.chip[data-filter="${layer}"]`);
+    if (targetChip) targetChip.classList.add('active');
+    renderSignals(layer);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
 
